@@ -272,7 +272,7 @@ class MusicCog(commands.Cog):
                 color = 0x00ff00
 
             fb_embed = discord.Embed(color=color)
-            fb_embed.set_author(name="小祥音樂 | 歌曲新增", icon_url=self.bot.user.display_avatar.url)
+            fb_embed.set_author(name="小祥音樂 | 新增歌曲", icon_url=self.bot.user.display_avatar.url)
             fb_embed.description = f"<a:check1:1485303384436244541> **已新增 [{display_title}]({search if 'http' in search else 'https://www.youtube.com'}) 至待播清單**"
             fb_embed.add_field(name="<:time:1485620493758365808> | 歌曲時長", value=f"`{display_duration}`", inline=True)
             fb_embed.add_field(name="<:yes:1485303410256379934> | 歌曲作者", value=f"`{display_author}`", inline=True)
