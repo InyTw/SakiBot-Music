@@ -22,7 +22,7 @@ async def on_ready():
     except Exception as e:
         print(f"❌ 載入失敗: {e}")
 
-    activity = discord.CustomActivity(name="🔥現在正是複習的時刻")
+    activity = discord.CustomActivity(name="🔥成績還真是高高在上呢...")
     await bot.change_presence(status=discord.Status.online, activity=activity)
     
     await bot.tree.sync()
