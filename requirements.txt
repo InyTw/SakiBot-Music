@@ -1,4 +1,5 @@
-discord.py
+discord.py[voice]
+pynacl
 yt-dlp
 spotipy
 python-dotenv

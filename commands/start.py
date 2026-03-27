@@ -45,20 +45,33 @@ class SpotifyHandler:
     async def get_tracks(url):
         tracks = []
         try:
+            # 1. 處理單曲
             if "track" in url:
                 res = sp.track(url)
-                tracks.append(f"{res['name']} {res['artists'][0]['name']}")
+                artist_name = res['artists'][0]['name'] if res.get('artists') else "未知歌手"
+                tracks.append(f"{res['name']} {artist_name}")
+
+            # 2. 處理歌單
             elif "playlist" in url:
                 res = sp.playlist_tracks(url)
-                for item in res['items']:
-                    if item['track']:
-                        tracks.append(f"{item['track']['name']} {item['track']['artists'][0]['name']}")
+                for item in res.get('items', []):
+                    track = item.get('track')
+                    if track:
+                        artist_name = track['artists'][0]['name'] if track.get('artists') else "未知歌手"
+                        tracks.append(f"{track['name']} {artist_name}")
+
+            # 3. 處理專輯
             elif "album" in url:
-                res = sp.album_tracks(url)
-                for item in res['items']:
-                    tracks.append(f"{item['name']} {res['artists'][0]['name']}")
+                res = sp.album(url) # 改用 sp.album 才能拿到專輯整體的歌手
+                album_artist = res['artists'][0]['name'] if res.get('artists') else "未知歌手"
+                for item in res['tracks']['items']:
+                    # 優先找歌曲本身的歌手，沒有就用專輯歌手
+                    track_artist = item['artists'][0]['name'] if item.get('artists') else album_artist
+                    tracks.append(f"{item['name']} {track_artist}")
+
         except Exception as e:
             print(f"Spotify 解析錯誤: {e}")
+            import traceback; traceback.print_exc() 
         return tracks
 
 # --- 按鈕介面 ---
@@ -211,10 +224,10 @@ class MusicCog(commands.Cog):
         
         dur = data.get('duration', 0)
         embed.add_field(name="<:time:1485620493758365808> | 歌曲時長", value=f"`0分 0秒 / {dur//60}分 {dur%60}秒`", inline=True)
-        embed.add_field(name="<:yes:1485303410256379934> | 歌曲作者", value=f"`{data.get('uploader', '未知')}`", inline=True)
-        embed.add_field(name="<:kuru64:1485622482701647992> | 歌曲來源", value=f"`{source_type}`", inline=True)
+        embed.add_field(name="<:yes:1485303410256379934> | 歌曲作者", value=f"{data.get('uploader', '未知')}", inline=True)
+        embed.add_field(name="<:kuru64:1485622482701647992> | 歌曲來源", value=f"{source_type}", inline=True)
         embed.add_field(name="<:user_discord:1485621449636184084> | 點播者", value=requester, inline=True)
-        embed.add_field(name="<:list:1485621651868614777> | 待播清單", value=f"`{len(self.queues[gid])} 首`", inline=True)
+        embed.add_field(name="<:list:1485621651868614777> | 待播清單", value=f"{len(self.queues[gid])} 首", inline=True)
         
         if data.get('thumbnail'): embed.set_thumbnail(url=data['thumbnail'])
         
@@ -243,19 +256,53 @@ class MusicCog(commands.Cog):
 
         try:
             is_spotify = SpotifyHandler.is_spotify(search)
+            
             if is_spotify:
-                tracks = await SpotifyHandler.get_tracks(search)
-                if not tracks: return await interaction.followup.send("❌ 無法解析 Spotify 連結")
-                for t in tracks:
-                    self.queues[gid].append({'query': t, 'requester': interaction.user.mention, 'source': 'Spotify'})
-                display_title = f"Spotify 歌單 ({len(tracks)} 首歌曲)"
-                display_author = "Spotify 用户"
-                display_duration = "視歌曲而定"
-                thumbnail = None 
-                color = 0x1DB954
+                # 1. 先嘗試用 Spotify API 拿歌曲名稱
+                try:
+                    tracks = await SpotifyHandler.get_tracks(search)
+                except:
+                    tracks = [] # 403 噴錯就設為空列表
+
+                if tracks:
+                    # 如果 API 拿得到歌曲清單 (例如單曲名 歌手名)
+                    for t in tracks:
+                        self.queues[gid].append({'query': t, 'requester': interaction.user.mention, 'source': 'Spotify'})
+                    display_title = f"Spotify 內容 ({len(tracks)} 首)"
+                    display_author = "Spotify"
+                    display_duration = "視搜尋結果而定"
+                    thumbnail = None
+                    color = 0x1DB954
+                else:
+                    # 2. 如果 API 失敗，我們「不」直接解析網址，而是搜尋網址本身 (這會觸發 YouTube 搜尋)
+                    # 我們強迫 yt-dlp 用關鍵字搜尋而不是直接下載
+                    search_query = f"ytsearch1:{search}" 
+                    data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(search_query, download=False))
+                    
+                    if not data or 'entries' not in data or not data['entries']:
+                        return await interaction.followup.send("<a:sakiko_err:1485303400194248725> 啊不是叫你先別用了嗎?")
+                    
+                    first_song = data['entries'][0]
+                    self.queues[gid].append({
+                        'query': first_song.get('webpage_url'),
+                        'requester': interaction.user.mention,
+                        'source': 'YouTube (Spotify 轉發)'
+                    })
+                    display_title = first_song.get('title')
+                    display_author = first_song.get('uploader')
+                    dur = first_song.get('duration', 0)
+                    display_duration = f"{dur//60}分 {dur%60}秒"
+                    thumbnail = first_song.get('thumbnail')
+                    color = 0x00ff00
             else:
+                # --- 一般 YouTube 或關鍵字搜尋 ---
                 data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(search, download=False))
-                songs = data['entries'] if 'entries' in data else [data]
+                
+                # 防呆：確保 data 不是 None
+                if not data:
+                    return await interaction.followup.send("❌ 找不到歌曲資訊")
+                
+                songs = data.get('entries', [data])
                 for s in songs:
                     if s:
                         self.queues[gid].append({
@@ -263,8 +310,9 @@ class MusicCog(commands.Cog):
                             'requester': interaction.user.mention,
                             'source': 'YouTube'
                         })
-                first_song = songs[0]
-                display_title = first_song.get('title')
+                
+                first_song = songs[0] if songs[0] else data
+                display_title = first_song.get('title', '未知標題')
                 display_author = first_song.get('uploader', '未知作者')
                 dur = first_song.get('duration', 0)
                 display_duration = f"{dur//60}分 {dur%60}秒"
