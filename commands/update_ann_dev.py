@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-class UpdateAnn(commands.Cog):
+class UpdateAnnDev(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -9,7 +9,7 @@ class UpdateAnn(commands.Cog):
     async def update_info(self, ctx):
         embed = discord.Embed(
             title="📢 小祥音樂更新公告 | Update Notice",
-            description="v.1.0.1 版本更新公告",
+            description="為了提供更穩定的播放體驗，我們對機器人進行了以下調整：",
             color=0x3498db
         )
 
@@ -37,7 +37,7 @@ class UpdateAnn(commands.Cog):
 
         embed.set_footer(text="最後更新日期：2026/03/27 • 祝您盡早變神人！")
         
-        await ctx.send(content="以下為目前的更新", embed=embed)
+        await ctx.send(content="|| @everyone ||", embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(UpdateAnn(bot))
+    await bot.add_cog(UpdateAnnDev(bot))

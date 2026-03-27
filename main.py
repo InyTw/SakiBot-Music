@@ -19,6 +19,7 @@ async def on_ready():
     try:
         await bot.load_extension('commands.start')
         await bot.load_extension('commands.update_ann')
+        await bot.load_extension('commands.update_ann_dev')
         await bot.load_extension('commands.ticket')
         print("📁 已載入音樂模組")
     except Exception as e:
