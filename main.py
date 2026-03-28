@@ -21,6 +21,7 @@ async def on_ready():
         await bot.load_extension('commands.update_ann')
         await bot.load_extension('commands.update_ann_dev')
         await bot.load_extension('commands.ticket')
+        await bot.load_extension('commands.help')
         print("📁 已載入音樂模組")
     except Exception as e:
         print(f"❌ 載入失敗: {e}")
