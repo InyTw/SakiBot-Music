@@ -123,8 +123,8 @@ class TicketCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def setup_ticket(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="🏮 OHW 客服系統",
-            description="如果您遇到遊戲問題、儲值問題或檢舉玩家，請點擊下方按鈕開啟客服單\nYouTube Rank 申請資格:\n1. 需要有1000訂閱\n2. 至少1部影片(不包含shorts)擁有1000觀看\n3. 需要拍一部宣傳片，且觀看需擁有500觀看\n\n如果您有任何問題，請隨時聯繫我們的客服團隊！",
+            title="🎫 OHW 客服系統",
+            description="如果您遇到遊戲問題、儲值問題或檢舉玩家，請點擊下方按鈕開啟客服單\n\nYouTube Rank 申請資格:\n1. 需要有1000訂閱\n2. 至少1部影片(不包含shorts)擁有1000觀看\n3. 需要拍一部宣傳片，且觀看需擁有500觀看(Shorts不算)\n\n如果您有任何問題，請隨時聯繫我們的客服團隊！",
             color=discord.Color.gold()
         )
         await interaction.response.send_message("✅ 面板已送出", ephemeral=True)
