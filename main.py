@@ -1,5 +1,6 @@
 import discord
 import os
+import asyncio # 新增這個
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -9,26 +10,44 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
+intents.members = True # 建議開啟，這樣掃描成員數會更準確
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+# --- 新增啟動載入函數 ---
+async def load_extensions():
+    extensions = [
+        'commands.start',
+        'commands.update_ann',
+        'commands.update_ann_dev',
+        'commands.ticket',
+        'commands.help',
+        'cogs.logging_cog' # 放在這裡載入
+    ]
+    
+    for ext in extensions:
+        try:
+            await bot.load_extension(ext)
+            print(f"✅ 成功載入: {ext}")
+        except Exception as e:
+            print(f"❌ 載入失敗 {ext}: {e}")
 
 @bot.event
 async def on_ready():
     print(f'✅ {bot.user} 已上線')
     
-    try:
-        await bot.load_extension('commands.start')
-        await bot.load_extension('commands.update_ann')
-        await bot.load_extension('commands.update_ann_dev')
-        await bot.load_extension('commands.ticket')
-        await bot.load_extension('commands.help')
-        print("📁 已載入音樂模組")
-    except Exception as e:
-        print(f"❌ 載入失敗: {e}")
-
-    activity = discord.CustomActivity(name="🔥成績還真是高高在上呢...")
-    await bot.change_presence(status=discord.Status.online, activity=activity)
-    
+    # 同步斜線指令
     await bot.tree.sync()
+    print("🌐 斜線指令已同步完成")
 
-bot.run(TOKEN)
+    activity = discord.CustomActivity(name="🔥我InyTw老師更新了！")
+    await bot.change_presence(status=discord.Status.online, activity=activity)
+
+# --- 修改啟動方式 ---
+async def main():
+    async with bot:
+        await load_extensions()
+        await bot.start(TOKEN)
+
+if __name__ == "__main__":
+    asyncio.run(main())

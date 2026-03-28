@@ -5,10 +5,10 @@ class UpdateAnnDev(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="update", description="發布小祥音樂更新公告")
+    @commands.command(name="update_dev", description="發布小祥音樂更新公告")
     async def update_info(self, ctx):
         embed = discord.Embed(
-            title="📢 小祥音樂更新公告 | Update Notice",
+            title="📢 小祥音樂更新公告 (工作人員版本) | Update Notice (STAFF version)",
             description="為了提供更穩定的播放體驗，我們對機器人進行了以下調整：",
             color=0x3498db
         )
@@ -35,9 +35,9 @@ class UpdateAnnDev(commands.Cog):
             inline=False
         )
 
-        embed.set_footer(text="最後更新日期：2026/03/27 • 祝您盡早變神人！")
+        embed.set_footer(text="最後更新日期：2026/03/27 • 任何問體也請管理員到 ohw 的客服單，以便做處理")
         
-        await ctx.send(content="|| @everyone ||", embed=embed)
+        await ctx.send(content="給管理員看的\n也請工作人員公告給玩家使用 !update 來查詢更新內容", embed=embed)
 
 async def setup(bot):
     await bot.add_cog(UpdateAnnDev(bot))
