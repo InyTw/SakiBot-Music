@@ -24,4 +24,4 @@ class UpdateAnn(commands.Cog):
         embed.set_footer(text="祝您盡早變神人！")
 
 async def setup(bot):
-    await bot.add_cog(UpdateAnn(bot))
+    await bot.add_cog(UpdateAnn(bot)) 
