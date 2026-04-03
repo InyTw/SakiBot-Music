@@ -1,8 +1,8 @@
 {
-  "uptime": "0d 0h 10m",
-  "guilds": 7,
+  "uptime": "0d 0h 0m",
+  "guilds": 0,
   "players": 0,
-  "cpu": 1.4,
-  "ram_used": 6703,
-  "ram_total": 2048
+  "cpu": 0,
+  "ram_used": 0,
+  "ram_total": 0
 }
