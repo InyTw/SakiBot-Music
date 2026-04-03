@@ -1,14 +1,14 @@
 {
-  "last_update": "2026-04-03 15:28:30",
+  "last_update": "2026-04-03 15:33:29",
   "nodes": [
     {
       "id": "TW-01",
       "name": "Taipei Main Node",
       "status": "online",
-      "uptime": "0d 0h 15m",
-      "cpu": 1.5,
-      "ram_percent": 85.7,
-      "ping": "196ms",
+      "uptime": "0d 0h 20m",
+      "cpu": 1.9,
+      "ram_percent": 85.6,
+      "ping": "198ms",
       "guilds": 7
     }
   ],
