@@ -1,9 +1,9 @@
 {
-  "uptime": "0d 11h 30m",
-  "last_update": "2026-04-03 12:17:05",
+  "uptime": "0d 11h 35m",
+  "last_update": "2026-04-03 12:22:05",
   "guilds": 7,
   "players": 84,
-  "cpu": 1.7,
-  "ram_used": 6725,
+  "cpu": 1.6,
+  "ram_used": 6723,
   "ram_total": 7825
 }
