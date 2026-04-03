@@ -1,16 +1,8 @@
 {
-  "uptime": "0d 0h 0m",
-<<<<<<< HEAD
-  "guilds": 0,
-  "players": 0,
-  "cpu": 0,
-  "ram_used": 0,
-  "ram_total": 0
-=======
+  "uptime": "0d 0h 5m",
   "guilds": 7,
   "players": 0,
-  "cpu": 1.6,
-  "ram_used": 6712,
+  "cpu": 1.4,
+  "ram_used": 6703,
   "ram_total": 2048
->>>>>>> d8ca19bafe1014362f43648a48ed694bb7f8f1f5
 }
