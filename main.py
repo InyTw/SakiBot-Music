@@ -50,14 +50,21 @@ async def update_github_stats():
     diff = now - start_time
     uptime_str = f"{diff.days}d {diff.seconds // 3600}h {(diff.seconds // 60) % 60}m"
     
-    # 構建專業的多節點 JSON 結構
+    # 1. 獲取當前進程對象
+    process = psutil.Process(os.getpid())
+    
+    # 2. 獲取當前機器人實際使用的記憶體 (單位: bytes -> MB)
+    # 使用 rss (Resident Set Size) 是最準確的物理記憶體佔用
+    ram_used_mb = int(process.memory_info().rss / 1024 / 1024) 
+
+    # 3. 封裝數據 (修正原本 NameError 的問題)
     stats = {
         "uptime": uptime_str,
         "guilds": len(bot.guilds),
-        "players": 0, # 如果你有寫播放器統計再放進來
+        "players": 0, 
         "cpu": psutil.cpu_percent(),
-        "ram_used": int(psutil.virtual_memory().used / 1024 / 1024),
-        "ram_total": 2048 # 或者用 psutil 抓真實總量
+        "ram_used": ram_used_mb, # 現在這個變數有定義了！
+        "ram_total": 2048
     }
 
     try:
