@@ -52,23 +52,12 @@ async def update_github_stats():
     
     # 構建專業的多節點 JSON 結構
     stats = {
-        "last_update": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "nodes": [
-            {
-                "id": "TW-01",
-                "name": "Taipei Main Node",
-                "status": "online",
-                "uptime": uptime_str,
-                "cpu": psutil.cpu_percent(),
-                "ram_percent": psutil.virtual_memory().percent,
-                "ping": f"{round(bot.latency * 1000)}ms",
-                "guilds": len(bot.guilds)
-            }
-        ],
-        "system": {
-            "lavalink": "connected",
-            "db": "stable"
-        }
+        "uptime": uptime_str,
+        "guilds": len(bot.guilds),
+        "players": 0, # 如果你有寫播放器統計再放進來
+        "cpu": psutil.cpu_percent(),
+        "ram_used": int(psutil.virtual_memory().used / 1024 / 1024),
+        "ram_total": 2048 # 或者用 psutil 抓真實總量
     }
 
     try:
