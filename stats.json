@@ -1,9 +1,19 @@
 {
-  "uptime": "0d 0h 10m",
-  "last_update": "2026-04-03 00:37:07",
-  "guilds": 7,
-  "players": 84,
-  "cpu": 1.9,
-  "ram_used": 6762,
-  "ram_total": 7825
+  "last_update": "2026-04-03 15:13:15",
+  "nodes": [
+    {
+      "id": "TW-01",
+      "name": "Taipei Main Node",
+      "status": "online",
+      "uptime": "0d 0h 0m",
+      "cpu": 1.6,
+      "ram_percent": 85.9,
+      "ping": "196ms",
+      "guilds": 7
+    }
+  ],
+  "system": {
+    "lavalink": "connected",
+    "db": "stable"
+  }
 }
