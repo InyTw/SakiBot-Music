@@ -67,7 +67,7 @@ async def update_github_stats():
     try:
         # 這裡填入你 OHW 伺服器的 IP。如果是本機跑就填 127.0.0.1
         # 如果有改 port (不是 25565) 記得要加上去，例如 "127.0.0.1:25566"
-        server = JavaServer.lookup("127.0.0.1") 
+        server = JavaServer.lookup("ohw.cloud-ip.cc") 
         status = await server.async_status() # 使用非同步版本，才不會卡住 Bot
         mc_data = {
             "online": True,
