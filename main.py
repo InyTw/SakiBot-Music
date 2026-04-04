@@ -55,13 +55,19 @@ async def update_github_stats():
     
     # 2. 獲取當前機器人實際使用的記憶體 (單位: bytes -> MB)
     # 使用 rss (Resident Set Size) 是最準確的物理記憶體佔用
-    ram_used_mb = int(process.memory_info().rss / 1024 / 1024) 
+    ram_used_mb = int(process.memory_info().rss / 1024 / 1024)
+    total_listeners = 0
+    for guild in bot.guilds:
+        if guild.voice_client and guild.voice_client.is_playing():
+            # 只統計 Bot 正在播放音樂的那個頻道的人數
+            # 減 1 是為了扣除 Bot 自己
+            total_listeners += len(guild.voice_client.channel.members) - 1
 
     # 3. 封裝數據 (修正原本 NameError 的問題)
     stats = {
         "uptime": uptime_str,
         "guilds": len(bot.guilds),
-        "players": 0, 
+        "players": total_listeners,
         "cpu": psutil.cpu_percent(),
         "ram_used": ram_used_mb, # 現在這個變數有定義了！
         "ram_total": 2048
@@ -102,6 +108,7 @@ async def load_extensions():
         'commands.update_ann_dev',
         'commands.ticket',
         'commands.help',
+        'commands.ann',
         'cogs.logging_cog'
     ]
     for ext in extensions:

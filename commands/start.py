@@ -39,40 +39,34 @@ ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 class SpotifyHandler:
     @staticmethod
     def is_spotify(url):
-        return "spotify.com" in url or "spotify.link" in url
+        # 修正判斷邏輯，包含常見的 spotify 網址格式
+        return "open.spotify.com" in url or "spotify.link" in url
 
     @staticmethod
     async def get_tracks(url):
+        # 建議這裡加上 asyncio.to_thread 或是跑在 executor
+        # 因為 sp.track 是同步阻塞請求
+        return await asyncio.to_thread(SpotifyHandler._fetch_spotify_data, url)
+
+    @staticmethod
+    def is_spotify(url):
         tracks = []
         try:
-            # 1. 處理單曲
             if "track" in url:
                 res = sp.track(url)
-                artist_name = res['artists'][0]['name'] if res.get('artists') else "未知歌手"
-                tracks.append(f"{res['name']} {artist_name}")
-
-            # 2. 處理歌單
+                tracks.append(f"{res['name']} {res['artists'][0]['name']}")
             elif "playlist" in url:
                 res = sp.playlist_tracks(url)
                 for item in res.get('items', []):
-                    track = item.get('track')
-                    if track:
-                        artist_name = track['artists'][0]['name'] if track.get('artists') else "未知歌手"
-                        tracks.append(f"{track['name']} {artist_name}")
-
-            # 3. 處理專輯
+                    t = item.get('track')
+                    if t: tracks.append(f"{t['name']} {t['artists'][0]['name']}")
             elif "album" in url:
-                res = sp.album(url) # 改用 sp.album 才能拿到專輯整體的歌手
-                album_artist = res['artists'][0]['name'] if res.get('artists') else "未知歌手"
+                res = sp.album(url)
                 for item in res['tracks']['items']:
-                    # 優先找歌曲本身的歌手，沒有就用專輯歌手
-                    track_artist = item['artists'][0]['name'] if item.get('artists') else album_artist
-                    tracks.append(f"{item['name']} {track_artist}")
-
+                    tracks.append(f"{item['name']} {res['artists'][0]['name']}")
         except Exception as e:
-            print(f"Spotify 解析錯誤: {e}")
-            import traceback; traceback.print_exc() 
-        return tracks
+            print(f"Spotify API Error: {e}")
+        return "open.spotify.com" in url or "spotify.link" in url
 
 # --- 按鈕介面 ---
 class MusicControls(discord.ui.View):
