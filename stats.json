@@ -4,5 +4,11 @@
   "players": 1,
   "cpu": 16.9,
   "ram_used": 43,
-  "ram_total": 2048
+  "ram_total": 2048,
+  "minecraft": {
+    "online": false, 
+    "current": 0, 
+    "max": 60, 
+    "ping": 0
+  }
 }

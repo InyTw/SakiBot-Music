@@ -8,6 +8,7 @@ import base64
 import aiohttp
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+from mcstatus import JavaServer
 
 # 1. 載入環境變數
 load_dotenv()
@@ -62,6 +63,21 @@ async def update_github_stats():
             # 只統計 Bot 正在播放音樂的那個頻道的人數
             # 減 1 是為了扣除 Bot 自己
             total_listeners += len(guild.voice_client.channel.members) - 1
+            
+    try:
+        # 這裡填入你 OHW 伺服器的 IP。如果是本機跑就填 127.0.0.1
+        # 如果有改 port (不是 25565) 記得要加上去，例如 "127.0.0.1:25566"
+        server = JavaServer.lookup("127.0.0.1") 
+        status = await server.async_status() # 使用非同步版本，才不會卡住 Bot
+        mc_data = {
+            "online": True,
+            "current": status.players.online,
+            "max": status.players.max,
+            "ping": round(status.latency, 1)
+        }
+    except Exception as e:
+        print(f"⚠️ 無法獲取 Minecraft 數據: {e}")
+        mc_data = {"online": False, "current": 0, "max": 60, "ping": 0}
 
     # 3. 封裝數據 (修正原本 NameError 的問題)
     stats = {
@@ -70,7 +86,8 @@ async def update_github_stats():
         "players": total_listeners,
         "cpu": psutil.cpu_percent(),
         "ram_used": ram_used_mb, # 現在這個變數有定義了！
-        "ram_total": 2048
+        "ram_total": 2048,
+        "minecraft": mc_data
     }
 
     try:
