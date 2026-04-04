@@ -77,7 +77,7 @@ async def update_github_stats():
         }
     except Exception as e:
         print(f"⚠️ 無法獲取 Minecraft 數據: {e}")
-        mc_data = {"online": False, "current": 0, "max": 60, "ping": 0}
+        mc_data = {"online": False, "current": 0, "max": 1000, "ping": 0}
 
     # 3. 封裝數據 (修正原本 NameError 的問題)
     stats = {
@@ -85,7 +85,7 @@ async def update_github_stats():
         "guilds": len(bot.guilds),
         "players": total_listeners,
         "cpu": psutil.cpu_percent(),
-        "ram_used": ram_used_mb, # 現在這個變數有定義了！
+        "ram_used": ram_used_mb,
         "ram_total": 2048,
         "minecraft": mc_data
     }
