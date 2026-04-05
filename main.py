@@ -10,17 +10,14 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from mcstatus import JavaServer
 
-# 1. 載入環境變數
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GH_TOKEN = os.getenv('GITHUB_TOKEN') 
 
-# --- GitHub 設定區 ---
 REPO_OWNER = "InyTw"
 REPO_NAME = "SakiBot-Music"
 FILE_PATH = "stats.json" 
 
-# 2. 初始化 Bot
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
@@ -29,10 +26,8 @@ intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 start_time = datetime.datetime.now()
 
-# --- 真實數據同步任務 (非同步優化版) ---
 @tasks.loop(minutes=5)
 async def update_github_stats():
-    # 確保機器人完全連線後再開始跑，避免抓不到 bot.latency
     if not bot.is_ready():
         return
 
@@ -46,29 +41,21 @@ async def update_github_stats():
         "Accept": "application/vnd.github.v3+json"
     }
 
-    # 封裝真實指標數據
     now = datetime.datetime.now()
     diff = now - start_time
     uptime_str = f"{diff.days}d {diff.seconds // 3600}h {(diff.seconds // 60) % 60}m"
-    
-    # 1. 獲取當前進程對象
+
     process = psutil.Process(os.getpid())
-    
-    # 2. 獲取當前機器人實際使用的記憶體 (單位: bytes -> MB)
-    # 使用 rss (Resident Set Size) 是最準確的物理記憶體佔用
+
     ram_used_mb = int(process.memory_info().rss / 1024 / 1024)
     total_listeners = 0
     for guild in bot.guilds:
         if guild.voice_client and guild.voice_client.is_playing():
-            # 只統計 Bot 正在播放音樂的那個頻道的人數
-            # 減 1 是為了扣除 Bot 自己
             total_listeners += len(guild.voice_client.channel.members) - 1
             
     try:
-        # 這裡填入你 OHW 伺服器的 IP。如果是本機跑就填 127.0.0.1
-        # 如果有改 port (不是 25565) 記得要加上去，例如 "127.0.0.1:25566"
         server = JavaServer.lookup("ohw.cloud-ip.cc") 
-        status = await server.async_status() # 使用非同步版本，才不會卡住 Bot
+        status = await server.async_status()
         mc_data = {
             "online": True,
             "current": status.players.online,
@@ -78,8 +65,6 @@ async def update_github_stats():
     except Exception as e:
         print(f"⚠️ 無法獲取 Minecraft 數據: {e}")
         mc_data = {"online": False, "current": 0, "max": 1000, "ping": 0}
-
-    # 3. 封裝數據 (修正原本 NameError 的問題)
     stats = {
         "uptime": uptime_str,
         "guilds": len(bot.guilds),
@@ -92,17 +77,15 @@ async def update_github_stats():
 
     try:
         async with aiohttp.ClientSession() as session:
-            # A. 獲取檔案目前的 SHA (GitHub 修改檔案必備)
             async with session.get(url, headers=headers) as resp:
                 data = await resp.json()
                 sha = data.get('sha') if resp.status == 200 else None
 
-            # B. 將數據轉為 Base64 並推送更新
             content_json = json.dumps(stats, indent=2, ensure_ascii=False)
             content_b64 = base64.b64encode(content_json.encode('utf-8')).decode('utf-8')
             
             payload = {
-                "message": "sys: auto-sync bot metrics [skip ci]", # [skip ci] 避免觸發無謂的 Actions
+                "message": "sys: auto-sync bot metrics [skip ci]",
                 "content": content_b64,
                 "sha": sha
             }
@@ -117,7 +100,6 @@ async def update_github_stats():
     except Exception as e:
         print(f"❌ GitHub 同步過程發生非預期錯誤: {e}")
 
-# 3. 擴充功能載入
 async def load_extensions():
     extensions = [
         'commands.start',
@@ -135,26 +117,21 @@ async def load_extensions():
         except Exception as e:
             print(f"❌ 載入模組失敗 {ext}: {e}")
 
-# 4. 事件處理
 @bot.event
 async def on_ready():
     print(f'✅ {bot.user} 已成功上線並接管服務')
-    
-    # 同步斜線指令
+
     await bot.tree.sync()
     print("🌐 Discord 斜線指令已完成全域同步")
 
-    # 設定機器人狀態
     activity = discord.CustomActivity(name="🔥 Saki 音樂系統監控中")
     await bot.change_presence(status=discord.Status.online, activity=activity)
-    
-    # 啟動定時同步任務 (延遲 10 秒啟動，確保系統穩定)
+
     await asyncio.sleep(10)
     if not update_github_stats.is_running():
         update_github_stats.start()
         print("📊 監控數據同步任務已就緒")
 
-# 5. 主啟動程序
 async def main():
     try:
         async with bot:
@@ -165,7 +142,6 @@ async def main():
             await bot.start(TOKEN)
     except Exception as e:
         print(f"🔥 機器人啟動時發生嚴重錯誤: {e}")
-        # 在 Pterodactyl 中保持程序開啟 10 秒以便閱讀報錯
         await asyncio.sleep(10)
 
 if __name__ == "__main__":
