@@ -3,3 +3,5 @@ pynacl
 yt-dlp
 spotipy
 python-dotenv
+psutil
+mcstatus
