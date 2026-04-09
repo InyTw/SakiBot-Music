@@ -1,14 +1,14 @@
 {
-  "uptime": "2d 19h 45m",
+  "uptime": "2d 19h 50m",
   "guilds": 7,
   "players": 0,
-  "cpu": 10.7,
+  "cpu": 12.3,
   "ram_used": 24,
   "ram_total": 2048,
   "minecraft": {
-    "online": true,
+    "online": false,
     "current": 0,
-    "max": 1,
-    "ping": 626.9
+    "max": 1000,
+    "ping": 0
   }
 }
