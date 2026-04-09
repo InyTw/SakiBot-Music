@@ -1,9 +1,9 @@
 {
-  "uptime": "2d 16h 10m",
+  "uptime": "2d 16h 15m",
   "guilds": 7,
   "players": 0,
-  "cpu": 10.6,
-  "ram_used": 24,
+  "cpu": 10.2,
+  "ram_used": 25,
   "ram_total": 2048,
   "minecraft": {
     "online": false,
