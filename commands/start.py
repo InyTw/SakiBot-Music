@@ -235,8 +235,8 @@ class MusicCog(commands.Cog):
         return [app_commands.Choice(name=f"搜尋: {current}", value=current)]
 
     @app_commands.command(name="play", description="播放音樂 (支援 YouTube 搜尋/Spotify)")
+    @app_commands.autocomplete(search=song_autocomplete) # 確保你有定義這個
     async def play(self, interaction: discord.Interaction, search: str):
-        # 檢查 autocomplete 是否傳入空值
         if not search: return await interaction.response.send_message("❌ 請輸入有效的內容", ephemeral=True)
         
         await interaction.response.defer(ephemeral=False)
@@ -256,28 +256,59 @@ class MusicCog(commands.Cog):
                 tracks = await SpotifyHandler.get_tracks(search)
                 for t in tracks:
                     self.queues[gid].append({'query': f"ytsearch:{t}", 'requester': interaction.user.mention, 'source': 'Spotify'})
-                d_title = f"Spotify 歌單 ({len(tracks)} 首)"
-                d_author = "Spotify"
-                d_dur = "多首歌曲"
-                thumb = None
-                clr = 0x1DB954
+                d_title, d_author, d_dur, thumb, clr = f"Spotify 內容 ({len(tracks)} 首)", "Spotify", "多首歌曲", None, 0x1DB954
+            
             else:
+                # 使用 run_in_executor 避免阻塞主線程
                 data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(search if "http" in search else f"ytsearch:{search}", download=False))
-                if 'entries' in data: data = data['entries'][0]
-                self.queues[gid].append({'query': data['webpage_url'], 'requester': interaction.user.mention, 'source': 'YouTube'})
-                d_title, d_author, dur = data.get('title'), data.get('uploader'), data.get('duration', 0)
-                d_dur, thumb, clr = f"{dur//60}分 {dur%60}秒", data.get('thumbnail'), 0x00ff00
+                
+                if 'entries' in data:
+                    # 情況 A：這是一個播放清單 (Playlist) 或 搜尋結果
+                    entries = list(data['entries'])
+                    added_count = 0
+                    
+                    for entry in entries:
+                        if entry:
+                            # 確保抓取正確的 URL 欄位
+                            video_url = entry.get('webpage_url') or entry.get('url') or f"https://www.youtube.com/watch?v={entry.get('id')}"
+                            self.queues[gid].append({
+                                'query': video_url, 
+                                'requester': interaction.user.mention, 
+                                'source': 'YouTube'
+                            })
+                            added_count += 1
+                    
+                    # --- 關鍵修正：優先抓取「播放清單」本體的封面與標題 ---
+                    first_video = entries[0]
+                    thumb = data.get('thumbnail') or first_video.get('thumbnail')
+                    d_title = data.get('title') or f"{first_video.get('title')} (共 {added_count} 首)"
+                    d_author = data.get('uploader') or first_video.get('uploader') or "YouTube 播放清單"
+                    d_dur = "多首歌曲"
+                    clr = 0x00ff00
+                else:
+                    # 情況 B：這是一首單曲
+                    self.queues[gid].append({
+                        'query': data['webpage_url'], 
+                        'requester': interaction.user.mention, 
+                        'source': 'YouTube'
+                    })
+                    d_title, d_author, dur = data.get('title'), data.get('uploader'), data.get('duration', 0)
+                    d_dur, thumb, clr = f"{dur//60}分 {dur%60}秒", data.get('thumbnail'), 0x00ff00
 
+            # 回傳加入成功的 Embed
             fb = discord.Embed(title="✅ 已加入隊列", description=f"**[{d_title}]({search if 'http' in search else 'https://www.youtube.com'})**", color=clr)
-            fb.add_field(name="歌曲作者", value=d_author, inline=True)
-            fb.add_field(name="時長", value=d_dur, inline=True)
+            fb.add_field(name="歌曲作者", value=f"`{d_author}`", inline=True)
+            fb.add_field(name="時長", value=f"`{d_dur}`", inline=True)
             if thumb: fb.set_thumbnail(url=thumb)
             await interaction.followup.send(embed=fb)
 
+            # 如果沒在撥放，立刻開始
             if not voice.is_playing() and not self.is_transitioning.get(gid):
                 await self.play_next(interaction, interaction.guild)
+                
         except Exception as e:
-            await interaction.followup.send(f"❌ 錯誤: {e}")
+            print(f"Play Error Details: {e}")
+            await interaction.followup.send(f"❌ 錯誤: `{str(e)}`", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(MusicCog(bot))
