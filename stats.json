@@ -1,5 +1,5 @@
 {
-  "uptime": "3d 13h 35m",
+  "uptime": "3d 13h 40m",
   "guilds": 7,
   "players": 0,
   "cpu": 9.0,
@@ -9,6 +9,6 @@
     "online": true,
     "current": 0,
     "max": 1,
-    "ping": 678.2
+    "ping": 682.7
   }
 }
